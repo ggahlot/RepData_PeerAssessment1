@@ -3,22 +3,111 @@ title: 'Reproducible Research: Peer Assessment 1'
 author: "Gaurav"
 date: "February 7, 2016"
 output: html_document
+keep_md: true
 ---
+
+
+## GG 2016-FEB-07This assignment uses information covered in Week 2 Lectures .
+  
+
 
 ## Loading and preprocessing the data
 
 
+     ## GG 2016-FEB-07 loading file could be done from URL by copying link location to get rep data activity.zip  and   using following code or Copying file locally.
+    ## file activity ,csv will be extracted.
+    
+```{r}    
+library(data.table)
+if (!file.exists("data.zip")) {
+  download.file(url="https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",destfile="data.zip")
+  unzip("data.zip")  
+}
+      ##GG 2016-FEB-07 read file into a data set "steps","date","interval"
+
+library(ggplot2)
+dataFile <- "./activity.csv"
+##data <- read.csv(dataFile, header=TRUE, sep=",", stringsAsFactors=FALSE, dec=".")
+
+data<- read.csv(dataFile, header = TRUE, sep = ",",
+                  colClasses=c("numeric", "character", "numeric"))
+
+data$date <- as.Date(data$date, format = "%Y-%m-%d")
+##str(data)
 
 ## What is mean total number of steps taken per day?
+Totalstepsperday <- aggregate(steps ~ date, data, sum)
+colnames(Totalstepsperday) <- c("date","steps")
+head(Totalstepsperday)
+## GG 2016-FEB-07 Show Graph 
 
+ggplot(Totalstepsperday, aes(x = steps)) + 
+       geom_histogram(fill = "Yellow", binwidth = 1000) + 
+        labs(title="Histogram of Steps Taken per Day", 
+             x = "Number of Steps per Day", y = "Number of times ") + theme_bw() 
+
+Totalstepsperday_mean   <- mean(Totalstepsperday$steps, na.rm=TRUE)
+Totalstepsperday_median <- median(Totalstepsperday$steps, na.rm=TRUE)
+
+Totalstepsperday_mean
+Totalstepsperday_median
+
+##qplot(Totalstepsperday$date, geom="histogram") 
 
 
 ## What is the average daily activity pattern?
 
+##opts_chunk$set(echo = TRUE, results = 'hold')
+
+## GG 2016-FEB-07 Remember to fix needs some work here to level the  conversion below
+
+Total_steps_per_interval <- aggregate(data$steps, 
+                                by = list(interval = data$interval),
+                                FUN=mean, na.rm=TRUE)
+## GG 2016-FEB-07 Update column names
+colnames(Total_steps_per_interval) <- c("interval", "steps")
+## GG 2016-FEB-07
+ggplot(Total_steps_per_interval, aes(x=interval, y=steps)) +   
+        geom_line(color="orange", size=1) +  
+        labs(title="Average Daily Activity Pattern", x="Interval", y="Number of steps") +  
+        theme_bw()
+max5_interval <- Total_steps_per_interval[which.max(steps_per_interval$steps),]
+max5_interval
 
 
 ## Imputing missing values
+missing_values <- sum(is.na(data$steps))
+## GG 2016-FEB-07 display 
+missing_vals 
 
+## GG 2016-FEB-07 Replace Blank with Total perday Mean calculated before
+data_fill <- data.frame(
+    steps =   ifelse(is.na(data$steps),Totalstepsperday_mean,data$steps),
+    date = data$date,  
+    interval = data$interval)
+str(data_fill)
+missing_values1 <- sum(is.na(data_fill$steps))
+## GG 2016-FEB-07 Verify if any value is still blank
+missing_values1 
+   ## GG 2016-FEB-07   
+filled_steps_per_day <- aggregate(steps ~ date, data_fill, sum)
+colnames(filled_steps_per_day) <- c("date","steps")
 
+## GG 2016-FEB-07 plotting the histogram  remember to revise 
+ggplot(filled_steps_per_day, aes(x = steps)) + 
+       geom_histogram(fill = "blue", binwidth = 1000) + 
+        labs(title="Histogram of Steps Taken per Day", 
+             x = "Number of Steps per Day", y = "Number of times in a day(Count)") + theme_bw() 
+steps_mean_fill   <- mean(filled_steps_per_day$steps, na.rm=TRUE)
+steps_median_fill <- median(filled_steps_per_day$steps, na.rm=TRUE)
 
+steps_mean_fill
+steps_median_fill
+
+## GG 2016-FEB-07 Values are different need to REvise  again as they should be close 
+
+## 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
+```
